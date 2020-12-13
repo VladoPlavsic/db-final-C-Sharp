@@ -58,6 +58,9 @@ fio NVARCHAR(50),
 adress NVARCHAR(50),
 tel VARCHAR(12),
 email VARCHAR(50),
+username VARCHAR(50),
+client_password VARCHAR(50),
+UNIQUE(username),
 UNIQUE (email));
 GO
 
@@ -257,21 +260,23 @@ ELSE
 END;
 GO
 
-CREATE OR ALTER FUNCTION get_id_from_email (@email VARCHAR(20))
+CREATE OR ALTER FUNCTION get_id_from_username (@username VARCHAR(20))
 RETURNS TABLE
 AS
-RETURN (SELECT id AS client_id FROM Clients WHERE email LIKE '%' + @email + '%');
+RETURN (SELECT id AS client_id FROM Clients WHERE username LIKE '%' + @username + '%');
 GO
 
 CREATE OR ALTER PROCEDURE register_client
 	@fio NVARCHAR(50),
 	@adress NVARCHAR(50),
 	@tel VARCHAR(12),
-	@email VARCHAR(50)
+	@email VARCHAR(50),
+	@username VARCHAR(50),
+	@password VARCHAR(50)
 AS
 BEGIN
 BEGIN TRY
-	INSERT INTO Clients VALUES (@fio,@adress, @tel, @email); 
+	INSERT INTO Clients VALUES (@fio,@adress, @tel, @email, @username, @password); 
 END TRY
 BEGIN CATCH
 	EXECUTE usp_GetErrorInfo;
@@ -343,7 +348,7 @@ GRANT SELECT ON Wood TO Clients;
 
 GRANT SELECT ON id_by_name TO Clients;
 GRANT SELECT ON clients_order_view_function_id TO Clients;
-GRANT SELECT ON get_id_from_email TO Clients;
+GRANT SELECT ON get_id_from_username TO Clients;
 
 GRANT EXECUTE ON custom_clr_function TO Clients;
 
@@ -359,13 +364,17 @@ EXEC sp_addrolemember 'Clients', 'custom_guest';
 CREATE USER polina FROM LOGIN polina;
 GO
 
-CREATE OR ALTER FUNCTION is_admin()
+CREATE OR ALTER FUNCTION get_category()
 RETURNS INTEGER
 AS
 BEGIN
-	IF IS_ROLEMEMBER ('Admins') = 1  
+	IF IS_ROLEMEMBER ('Admins') = 1
+		RETURN 0;
+	ELSE IF IS_ROLEMEMBER ('Couriers') = 1
 		RETURN 1;
-	RETURN 0;
+	ELSE IF IS_ROLEMEMBER ('Clients') = 1
+		RETURN 2;
+	RETURN-1;
 END;
 GO
 
@@ -377,14 +386,20 @@ GRANT SELECT ON Paint TO Admins;
 GRANT SELECT ON Wood TO Admins;
 GRANT SELECT ON Couriers TO Admins;
 GRANT SELECT ON Clients to Admins;
-GRANT EXEC ON is_admin TO Admins;
+GRANT EXEC ON get_category TO Admins;
 GRANT SELECT ON unavailable_adreses TO Admins;
 
 EXEC sp_addrolemember 'Admins', 'polina';
+GRANT ALTER ON role::Couriers TO Admins;
+GRANT ALTER ANY USER TO Admins;
+EXEC sp_addrolemember db_securityadmin, 'polina';
+
 
 GRANT SELECT ON courier_view_function TO Couriers;
 GRANT EXEC ON product_delivered TO Couriers;
-GRANT EXEC ON is_admin TO Couriers;
+GRANT EXEC ON get_category TO Couriers;
+
+GRANT EXEC ON get_category TO Clients;
 
 GO
 CREATE OR ALTER TRIGGER courier_insert_trigger ON Couriers
@@ -398,7 +413,7 @@ BEGIN
 	DECLARE @password VARCHAR(10);
 	SELECT @courier_id = CONVERT(VARCHAR,id) FROM inserted;
 	SET @cmd = 'CREATE USER user_' + @courier_id + ' WITH PASSWORD = ''password''';
-	SET @add = 'EXEC sp_addrolemember ''Couriers'', ''user_' + @courier_id + '''';
+	SET @add = 'ALTER ROLE Couriers ADD MEMBER user_' + @courier_id;
 	EXEC (@cmd);
 	EXEC (@add);
 END;
@@ -413,6 +428,41 @@ BEGIN
 	DECLARE @cmd VARCHAR(100);
 	SELECT @courier_id = CONVERT(VARCHAR,id) FROM inserted;
 	SET @cmd = 'DROP USER user_' + @courier_id;
+	EXEC (@cmd);
+END;
+GO
+
+
+CREATE OR ALTER TRIGGER client_insert_trigger ON Clients
+AFTER INSERT
+AS
+BEGIN
+
+	DECLARE @username VARCHAR(50);
+	DECLARE @password VARCHAR(50);
+	DECLARE @cmd VARCHAR(100);
+	DECLARE @add VARCHAR(100);
+
+
+	SELECT @password = client_password FROM inserted
+	SELECT @username = username FROM inserted
+	
+	SET @cmd = 'CREATE USER ' + @username + ' WITH PASSWORD = ''' + @password + '''';
+	SET @add = 'ALTER ROLE Clients ADD MEMBER ' + @username;
+	EXEC (@cmd);
+	EXEC (@add);
+END;
+GO
+
+CREATE OR ALTER TRIGGER client_delete_trigger ON Clients
+AFTER DELETE
+AS
+BEGIN
+
+	DECLARE @username VARCHAR(50);
+	DECLARE @cmd VARCHAR(100);
+	SELECT @username = username FROM inserted;
+	SET @cmd = 'DROP USER ' + @username;
 	EXEC (@cmd);
 END;
 GO
@@ -572,5 +622,16 @@ GO
 
 GRANT EXEC ON delete_client TO Admins;
 
+GO
+CREATE OR ALTER VIEW admin_client_view AS
+SELECT id,fio,adress,tel,email,username FROM Clients;
+GO
+
+GRANT SELECT ON admin_client_view TO Admins;
 
 
+CREATE USER register WITH PASSWORD='register';
+GRANT ALTER ON role::Clients TO register;
+GRANT ALTER ANY USER TO register;
+GRANT EXECUTE ON register_client TO register;
+EXEC sp_addrolemember db_securityadmin, 'register';

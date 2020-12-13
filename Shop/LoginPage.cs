@@ -17,86 +17,49 @@ namespace Shop
 
             int response = SQL.IsAdmin(username, passworod);
 
-            if (response == 1)
+            if (response == 0)
             {
                 AdminPage admin = new AdminPage(username, passworod, this);
                 this.Hide();
                 admin.Show();
             }
-            else if (response == 0)
+            else if (response == 1)
             {
                 Courier courier = new Courier(username, passworod, this);
 
                 this.Hide();
                 courier.Show();
             }
+            else if (response == 2)
+            {
+                Guest guest = new Guest(username, passworod, this);
+
+                this.Hide();
+                guest.Show();
+            }
             else
             {
-                Error error = new Error("Looks like you've enterted wrong credientals. Please try again!");
+                Error error = new Error("Looks like you've enterted wrong credientals. Please try again! Or register.");
                 error.ShowDialog();
             }
         }
 
-       
-
-
-
-        /*GUEST LOGIN*/
-        private void loginGuestIDButton_Click(object sender, EventArgs e)
+        private void registerButton_Click(object sender, EventArgs e)
         {
-            if(this.identificationTextBox.Text.Length == 0)
+            Register register = new Register(this);
+            this.Hide();
+            var response = register.ShowDialog();
+            if (response == DialogResult.OK)
             {
-                Error error = new Error("Error: Please don't leave field empty");
-                error.Show();
-                return;
-            }
+                Guest guest = new Guest(register.Username, register.Password, this);
 
-            try
-            {
-                int ID = Convert.ToInt32(this.identificationTextBox.Text.ToString());
-                Guest guest = new Guest(ID, this);
-                if (!guest.IsDisposed)
-                {
-                    this.Hide();
-                    guest.Show();
-                }
-            }
-            catch
-            {
-                Error error = new Error("Error: Please enter valid ID");
-                error.Show();
-                return;
-            };
-        }
-
-        private void loginGuestEmailButton_Click(object sender, EventArgs e)
-        {
-
-            String email = this.identificationTextBox.Text.ToString();
-
-            Console.WriteLine(SQL.UseCLR(String.Format("SELECT dbo.custom_clr_function('{0}') reg", email)));
-            /*
-            if () 
-            {
-                Console.WriteLine("True");
+                register.Close();
+                this.Hide();
+                guest.Show();
             }
             else
             {
-                Console.WriteLine("False");
-            }
-            */
-            if (this.identificationTextBox.Text.Length == 0)
-            {
-                Error error = new Error("Error: Please don't leave field empty");
-                error.Show();
                 return;
-            }
-
-            Guest guest = new Guest(email, this);
-            if (!guest.IsDisposed)
-            {
-                this.Hide();
-                guest.Show();
             }
         }
     }

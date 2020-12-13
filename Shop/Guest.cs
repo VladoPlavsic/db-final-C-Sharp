@@ -12,7 +12,8 @@ namespace Shop
     {
         private int m_ID;
         
-        private String m_Email;
+        private String m_Username;
+        private String m_Password;
 
         private Dictionary<String, String> m_Query = new Dictionary<String, String>();
         private Dictionary<String, ComboBox> m_Shop = new Dictionary<String, ComboBox>();
@@ -20,45 +21,24 @@ namespace Shop
         private Form m_Parent;
 
         private SqlConnection m_Connection;
-        public Guest(int id, Form parent)
+
+        public Guest(String username, String password, Form parent)
         {
-            this.m_ID = id;
             this.m_Parent = parent;
-            this.m_Connection = SQL.ConnectAsGuest(this.m_ID);
+            this.m_Username = username;
+            this.m_Password = password;
+            this.m_Connection = SQL.Connect(this.m_Username, this.m_Password);
 
             if (this.m_Connection == null)
-            {
-                Error error = new Error(String.Format("Error trying to connect as guest with ID\r\n{0}", this.m_ID));
-                error.ShowDialog();
-                parent.Show();
-                this.Close();
-                return;
-            }
-
-            InitializeComponent();
-
-            this.FillQuery();
-        
-            ShowOrders();
-            ShowShop();
-        }
-
-        public Guest(String email, Form parent)
-        {
-            this.m_Email = email;
-            this.m_Parent = parent;
-            this.m_Connection = SQL.ConnectAsGuest(this.m_Email);
-
-            if(this.m_Connection == null)
             {
                 Preview preview = new Preview("Ooops! Looks like you are not in our Database yet. Would you like to register?", this);
                 var result = preview.ShowDialog();
 
-                if(result == DialogResult.OK)
+                if (result == DialogResult.OK)
                 {
                     if (RegisterClient())
                     {
-                        this.m_Connection = SQL.ConnectAsGuest(this.m_Email);
+                        this.m_Connection = SQL.Connect(this.m_Username, this.m_Password);
                     }
                     else
                     {
@@ -75,11 +55,11 @@ namespace Shop
                 }
             }
 
-            this.m_Query.Add("getId", String.Format("SELECT * FROM get_id_from_email('{0}')", this.m_Email));
-            
+            this.m_Query.Add("getId", String.Format("SELECT * FROM get_id_from_username('{0}')", this.m_Username));
+
             this.m_ID = this.GetId();
 
-            if(m_ID == -1)
+            if (m_ID == -1)
             {
                 Error error = new Error(String.Format("Error looks like something is bad"));
                 error.ShowDialog();
@@ -92,7 +72,7 @@ namespace Shop
             InitializeComponent();
 
             this.FillQuery();
-            
+
             ShowOrders();
             ShowShop();
         }
@@ -106,7 +86,8 @@ namespace Shop
                 var response = register.ShowDialog();
                 if(response == DialogResult.OK)
                 {
-                    this.m_Email = register.Email;
+                    this.m_Username = register.Username;
+                    this.m_Password = register.Password;
                     return true;
                 }
                 return false;

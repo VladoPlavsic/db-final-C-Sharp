@@ -8,10 +8,12 @@ namespace Shop
     {
         private SqlConnection m_Connection;
         private Form m_Parent;
-        public String Email;
+        public String Username;
+        public String Password;
+
         public Register(Form parent)
         {
-            this.m_Connection = SQL.Connect("custom_guest","guest");
+            this.m_Connection = SQL.Connect("register","register");
             this.m_Parent = parent;
             InitializeComponent();
         }
@@ -25,8 +27,9 @@ namespace Shop
                 return;
             }
 
-            Email = this.emailTB.Text.ToString();
-            String query = String.Format("EXECUTE register_client @fio='{0}', @adress='{1}', @tel='{2}', @email='{3}'",this.fioTB.Text.ToString(), this.adressTB.Text.ToString(), this.telTB.Text.ToString(), Email);
+            Username = this.usernameTB.Text.ToString();
+            Password = this.passwordTB.Text.ToString();
+            String query = String.Format("EXECUTE register_client @fio='{0}', @adress='{1}', @tel='{2}', @email='{3}', @username='{4}', @password='{5}'",this.fioTB.Text.ToString(), this.adressTB.Text.ToString(), this.telTB.Text.ToString(), this.emailTB.Text.ToString(), Username, Password);
             try
             {
                 SQL.ExecuteQuery(query, this.m_Connection);

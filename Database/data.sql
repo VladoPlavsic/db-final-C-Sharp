@@ -10,16 +10,16 @@ INSERT INTO Category VALUES (N'Фэнтези');
 
 PRINT('Clients');
 
-INSERT INTO Clients VALUES (N'Горбачева Полина Русланова', N'Вавилова улица', '+76558798545', 'gorbacheva-polina01@mail.ru');
-INSERT INTO Clients VALUES (N'Прохоров Евгений Артёмович', N'Водопроводный переулок', '+79046002212', 'prohorov01@mail.ru');
-INSERT INTO Clients VALUES (N'Полякова Елизавета Никитична', N'Кабельная 4-я улица', '+79597164424','polyak033@mail.ru');
-INSERT INTO Clients VALUES (N'Озеров Михаил Андреевич', N'Косыгина улица', '+79728290334','misha.poi@yandex.ru');
-INSERT INTO Clients VALUES (N'Никулин Георгий Владимирович', N'Кадашёвская набережная', '+79277024684', 'jutighhh@mail.ru');
-INSERT INTO Clients VALUES (N'Нечаева Евгения Алексеевна', N'Нагатинская пойма', '+79399495538','loombira@gmail.com');
-INSERT INTO Clients VALUES (N'Наумова Алиса Данииловна', N'Нагорное посёлок', '+79357532222', 'vlado021@mail.ru');
-INSERT INTO Clients VALUES (N'Медведева Ева Марковна', N'Новозаводская улица', '+79718086176', 'mishka.r2@mail.ru');
-INSERT INTO Clients VALUES (N'Кузнецова Анастасия Фёдоровна', N'Авангардная улица', '+79399108532', 'pavlova.n@gmail.com');
-INSERT INTO Clients VALUES (N'Кузнецов Семён Павлович', N'Автозаводский мост', '+79930223305', 'uml@mail.ri');
+INSERT INTO Clients VALUES (N'Горбачева Полина Русланова', N'Вавилова улица', '+76558798545', 'gorbacheva-polina01@mail.ru','client1', 'password1');
+INSERT INTO Clients VALUES (N'Прохоров Евгений Артёмович', N'Водопроводный переулок', '+79046002212', 'prohorov01@mail.ru', 'client2','password2');
+INSERT INTO Clients VALUES (N'Полякова Елизавета Никитична', N'Кабельная 4-я улица', '+79597164424','polyak033@mail.ru', 'client3','password3');
+INSERT INTO Clients VALUES (N'Озеров Михаил Андреевич', N'Косыгина улица', '+79728290334','misha.poi@yandex.ru', 'client4','password4');
+INSERT INTO Clients VALUES (N'Никулин Георгий Владимирович', N'Кадашёвская набережная', '+79277024684', 'jutighhh@mail.ru', 'client5','password5');
+INSERT INTO Clients VALUES (N'Нечаева Евгения Алексеевна', N'Нагатинская пойма', '+79399495538','loombira@gmail.com','client6', 'password6');
+INSERT INTO Clients VALUES (N'Наумова Алиса Данииловна', N'Нагорное посёлок', '+79357532222', 'vlado021@mail.ru', 'client7','password7');
+INSERT INTO Clients VALUES (N'Медведева Ева Марковна', N'Новозаводская улица', '+79718086176', 'mishka.r2@mail.ru', 'client8','password8');
+INSERT INTO Clients VALUES (N'Кузнецова Анастасия Фёдоровна', N'Авангардная улица', '+79399108532', 'pavlova.n@gmail.com', 'client9','password9');
+INSERT INTO Clients VALUES (N'Кузнецов Семён Павлович', N'Автозаводский мост', '+79930223305', 'uml@mail.ri', 'client10','password10');
 
 PRINT('Paint');
 

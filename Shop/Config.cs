@@ -12,15 +12,15 @@ namespace Shop
         public static Dictionary<String, String> GetConfig()
         {
             Dictionary<String, String> config = new Dictionary<String, String>();
-
+            /*
 
             var conf = System.IO.File.ReadAllText(m_Path);
 
             var deserializer = new Deserializer();
 
             Console.WriteLine(deserializer.Deserialize(conf));
-
-            return config;
+            */
+            return null;
         }
 
     }

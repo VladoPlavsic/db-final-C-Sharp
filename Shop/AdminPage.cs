@@ -53,7 +53,7 @@ namespace Shop
             this.m_GridQuery.Add("wood",     "SELECT * FROM Wood");
             this.m_GridQuery.Add("couriers", "SELECT * FROM couriers");
             this.m_GridQuery.Add("addresses","SELECT * FROM Delivery");
-            this.m_GridQuery.Add("clients",  "SELECT * FROM Clients");
+            this.m_GridQuery.Add("clients",  "SELECT * FROM admin_client_view");
 
             this.m_Grids.Add("colors",   this.colorGrid);
             this.m_Grids.Add("paint",    this.paintGrid);
