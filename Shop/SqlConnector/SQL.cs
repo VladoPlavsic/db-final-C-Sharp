@@ -7,23 +7,21 @@ namespace Shop
 {
     public static class SQL
     {
+        public static String m_Source;
+        public static String m_Catalog;
 
-
-        public static bool UseCLR(String query)
+        public static bool UseCLR(String query, SqlConnection connection)
         {
-            /*
-            SqlConnection connection;
-            String connect = String.Format(@"Data Source=DESKTOP-3DJA5K7\SCHOOLPOLINA; Initial Catalog=school; User ID={0}; Password={1}", m_GuestUsername, m_GuestPassword);
-            connection = new SqlConnection(connect);
+            if (connection.State == ConnectionState.Closed)
+                connection.Open();
+
             return SQL.GetFirstBool(query, connection);
-            */
-            return false;
         }
 
         public static int IsAdmin(String username, String password)
         {
             SqlConnection connection;
-            String connect = String.Format(@"Data Source=DESKTOP-3DJA5K7\SCHOOLPOLINA; Initial Catalog=school; User ID={0}; Password={1}", username, password);
+            String connect = String.Format(@"Data Source={0}; Initial Catalog={1}; User ID={2}; Password={3}", SQL.m_Source, SQL.m_Catalog, username, password);
             connection = new SqlConnection(connect);
             String query = "SELECT dbo.get_category() admin";
             try
@@ -45,7 +43,7 @@ namespace Shop
         public static SqlConnection Connect(String username, String password)
         {
             SqlConnection connection;
-            String connect = String.Format(@"Data Source=DESKTOP-3DJA5K7\SCHOOLPOLINA; Initial Catalog=school; User ID={0}; Password={1}", username, password);
+            String connect = String.Format(@"Data Source={0}; Initial Catalog={1}; User ID={2}; Password={3}", SQL.m_Source, SQL.m_Catalog, username, password);
             connection = new SqlConnection(connect);
 
             try

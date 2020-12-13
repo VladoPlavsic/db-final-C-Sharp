@@ -1,8 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Configuration;
+using System.Collections.Specialized;
 
 namespace Shop
 {
@@ -14,6 +13,10 @@ namespace Shop
         [STAThread]
         static void Main()
         {
+            /*Get configuration for database connection*/
+            SQL.m_Source = ConfigurationManager.AppSettings.Get("Source");
+            SQL.m_Catalog = ConfigurationManager.AppSettings.Get("Catalog");
+
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             Application.Run(new LoginPage());

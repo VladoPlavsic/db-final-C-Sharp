@@ -193,7 +193,6 @@ SELECT * FROM orders_view_function();
 GO
 
 /*CLIENT INTERFACE*/
-
 CREATE OR ALTER FUNCTION client_exists_id (@client_id INT)
 RETURNS INT
 AS
@@ -306,63 +305,8 @@ ELSE
 END;
 GO
 
-/*Вход клиентов by id, но изначально регаются и потом получают ID*/
 
-CREATE ROLE Clients;
-CREATE ROLE Admins;
-CREATE ROLE Couriers;
 
-/*CLR FUNCTION*/
-EXEC sp_configure 'show advanced options',1;
-GO
-RECONFIGURE;
-GO
-EXEC sp_configure 'clr strict security',0;
-GO
-RECONFIGURE;
-GO
-
-USE school;
-CREATE ASSEMBLY custom_clr FROM 'C:\dev\Polya\Shop\CLRFunction\bin\Debug\CLRFunction.dll';
-GO
-
-GO
-CREATE OR ALTER FUNCTION custom_clr_function(@email NVARCHAR(50))
-RETURNS BIT
-AS
-EXTERNAL NAME custom_clr.[CLRFunction.CLR].CheckEmail
-GO
-
-EXEC sp_configure 'clr enabled', 1;  RECONFIGURE WITH OVERRIDE;
-
-CREATE USER custom_guest WITH PASSWORD = 'guest';
-GO
-GRANT SELECT ON available_adreses TO Clients;
-GRANT SELECT ON Category TO Clients;
-GRANT SELECT ON Colors TO Clients;
-GRANT SELECT ON Delivery TO Clients;
-GRANT SELECT ON Orders TO Clients;
-GRANT SELECT ON Frames TO Clients;
-GRANT SELECT ON Paint TO Clients;
-GRANT SELECT ON Wood TO Clients;
-
-GRANT SELECT ON id_by_name TO Clients;
-GRANT SELECT ON clients_order_view_function_id TO Clients;
-GRANT SELECT ON get_id_from_username TO Clients;
-
-GRANT EXECUTE ON custom_clr_function TO Clients;
-
-GRANT EXECUTE ON make_order TO Clients;
-GRANT EXECUTE ON drop_order TO Clients;
-GRANT EXECUTE ON register_client TO Clients;
-GRANT EXECUTE ON client_exists_id TO Clients;
-GRANT EXECUTE ON client_exists_email TO Clients;
-GO
-
-EXEC sp_addrolemember 'Clients', 'custom_guest';
-
-CREATE USER polina FROM LOGIN polina;
-GO
 
 CREATE OR ALTER FUNCTION get_category()
 RETURNS INTEGER
@@ -378,28 +322,6 @@ BEGIN
 END;
 GO
 
-GRANT SELECT ON Category TO Admins;
-GRANT SELECT ON Colors TO Admins;
-GRANT SELECT ON Delivery TO Admins;
-GRANT SELECT ON Frames TO Admins;
-GRANT SELECT ON Paint TO Admins;
-GRANT SELECT ON Wood TO Admins;
-GRANT SELECT ON Couriers TO Admins;
-GRANT SELECT ON Clients to Admins;
-GRANT EXEC ON get_category TO Admins;
-GRANT SELECT ON unavailable_adreses TO Admins;
-
-EXEC sp_addrolemember 'Admins', 'polina';
-GRANT ALTER ON role::Couriers TO Admins;
-GRANT ALTER ANY USER TO Admins;
-EXEC sp_addrolemember db_securityadmin, 'polina';
-
-
-GRANT SELECT ON courier_view_function TO Couriers;
-GRANT EXEC ON product_delivered TO Couriers;
-GRANT EXEC ON get_category TO Couriers;
-
-GRANT EXEC ON get_category TO Clients;
 
 GO
 CREATE OR ALTER TRIGGER courier_insert_trigger ON Couriers
@@ -426,7 +348,7 @@ BEGIN
 
 	DECLARE @courier_id VARCHAR(10);
 	DECLARE @cmd VARCHAR(100);
-	SELECT @courier_id = CONVERT(VARCHAR,id) FROM inserted;
+	SELECT @courier_id = CONVERT(VARCHAR,id) FROM deleted;
 	SET @cmd = 'DROP USER user_' + @courier_id;
 	EXEC (@cmd);
 END;
@@ -461,7 +383,7 @@ BEGIN
 
 	DECLARE @username VARCHAR(50);
 	DECLARE @cmd VARCHAR(100);
-	SELECT @username = username FROM inserted;
+	SELECT @username = username FROM deleted;
 	SET @cmd = 'DROP USER ' + @username;
 	EXEC (@cmd);
 END;
@@ -589,6 +511,67 @@ END;
 GO
 
 
+
+/*DELETE Clinets PROCEDURE*/
+GO
+CREATE OR ALTER PROCEDURE delete_client
+	@id INT
+AS
+BEGIN
+	DELETE FROM  Clients WHERE id = @id;
+END;
+GO
+
+
+GO
+CREATE OR ALTER VIEW admin_client_view AS
+SELECT id,fio,adress,tel,email,username FROM Clients;
+GO
+
+
+
+
+/*CLR FUNCTION*/
+EXEC sp_configure 'show advanced options',1;
+GO
+RECONFIGURE;
+GO
+EXEC sp_configure 'clr strict security',0;
+GO
+RECONFIGURE;
+GO
+EXEC sp_configure 'clr enabled', 1;  RECONFIGURE WITH OVERRIDE;
+GO
+
+USE school;
+CREATE ASSEMBLY custom_clr FROM 'C:\dev\Polya\Shop\CLRFunction\bin\Debug\CLRFunction.dll';
+GO
+
+GO
+CREATE OR ALTER FUNCTION custom_clr_function(@email NVARCHAR(50))
+RETURNS BIT
+AS
+EXTERNAL NAME custom_clr.[CLRFunction.CLR].CheckEmail
+GO
+
+
+
+/*CREATE ROLES*/
+CREATE ROLE Clients;
+CREATE ROLE Admins;
+CREATE ROLE Couriers;
+
+
+
+/*Admin PRIVILEGES*/
+CREATE USER polina FROM LOGIN polina;
+GO
+
+EXEC sp_addrolemember 'Admins', 'polina';
+GRANT ALTER ON role::Couriers TO Admins;
+GRANT ALTER ANY USER TO Admins;
+EXEC sp_addrolemember db_securityadmin, 'polina';
+
 GRANT EXEC ON insert_courier TO Admins;
 GRANT EXEC ON delete_courier TO Admins;
 
@@ -607,31 +590,57 @@ GRANT EXEC ON delete_wood TO Admins;
 GRANT EXEC ON insert_delivery TO Admins;
 GRANT EXEC ON delete_delivery TO Admins;
 
-/*
-GRANT EXEC ON sp_addrolemember TO Admins;
-*/
-/*DELETE Clinets PROCEDURE*/
-GO
-CREATE OR ALTER PROCEDURE delete_client
-	@id INT
-AS
-BEGIN
-	DELETE FROM  Clients WHERE id = @id;
-END;
-GO
-
+GRANT SELECT ON admin_client_view TO Admins;
 GRANT EXEC ON delete_client TO Admins;
 
-GO
-CREATE OR ALTER VIEW admin_client_view AS
-SELECT id,fio,adress,tel,email,username FROM Clients;
-GO
 
-GRANT SELECT ON admin_client_view TO Admins;
+GRANT SELECT ON Category TO Admins;
+GRANT SELECT ON Colors TO Admins;
+GRANT SELECT ON Delivery TO Admins;
+GRANT SELECT ON Frames TO Admins;
+GRANT SELECT ON Paint TO Admins;
+GRANT SELECT ON Wood TO Admins;
+GRANT SELECT ON Couriers TO Admins;
+
+GRANT EXEC ON get_category TO Admins;
+GRANT SELECT ON unavailable_adreses TO Admins;
 
 
+/*Client PRIVILEGES*/
+GRANT EXEC ON get_category TO Clients;
+
+GRANT SELECT ON available_adreses TO Clients;
+GRANT SELECT ON Category TO Clients;
+GRANT SELECT ON Colors TO Clients;
+GRANT SELECT ON Delivery TO Clients;
+GRANT SELECT ON Orders TO Clients;
+GRANT SELECT ON Frames TO Clients;
+GRANT SELECT ON Paint TO Clients;
+GRANT SELECT ON Wood TO Clients;
+
+GRANT SELECT ON id_by_name TO Clients;
+GRANT SELECT ON clients_order_view_function_id TO Clients;
+GRANT SELECT ON get_id_from_username TO Clients;
+
+GRANT EXECUTE ON custom_clr_function TO Clients;
+
+GRANT EXECUTE ON make_order TO Clients;
+GRANT EXECUTE ON drop_order TO Clients;
+GRANT EXECUTE ON register_client TO Clients;
+GRANT EXECUTE ON client_exists_id TO Clients;
+GRANT EXECUTE ON client_exists_email TO Clients;
+
+/*Courier PRIVILEGES*/
+GRANT SELECT ON courier_view_function TO Couriers;
+GRANT EXEC ON product_delivered TO Couriers;
+GRANT EXEC ON get_category TO Couriers;
+
+/*Registration PRIVILEGES*/
 CREATE USER register WITH PASSWORD='register';
 GRANT ALTER ON role::Clients TO register;
 GRANT ALTER ANY USER TO register;
 GRANT EXECUTE ON register_client TO register;
+GRANT EXECUTE ON custom_clr_function TO register;
 EXEC sp_addrolemember db_securityadmin, 'register';
+
+

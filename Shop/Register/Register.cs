@@ -11,9 +11,12 @@ namespace Shop
         public String Username;
         public String Password;
 
+        private String m_RegisterUsername = "register";
+        private String m_RegisterPassword = "register";
+
         public Register(Form parent)
         {
-            this.m_Connection = SQL.Connect("register","register");
+            this.m_Connection = SQL.Connect(this.m_RegisterUsername, this.m_RegisterPassword);
             this.m_Parent = parent;
             InitializeComponent();
         }
@@ -27,9 +30,18 @@ namespace Shop
                 return;
             }
 
+            String email = this.emailTB.Text.ToString();
+
+            if(!SQL.UseCLR(String.Format("SELECT dbo.custom_clr_function('{0}') reg", email), this.m_Connection))
+            {
+                Error error = new Error("Please enter valid E-mail!");
+                error.ShowDialog();
+                return;
+            }
+
             Username = this.usernameTB.Text.ToString();
             Password = this.passwordTB.Text.ToString();
-            String query = String.Format("EXECUTE register_client @fio='{0}', @adress='{1}', @tel='{2}', @email='{3}', @username='{4}', @password='{5}'",this.fioTB.Text.ToString(), this.adressTB.Text.ToString(), this.telTB.Text.ToString(), this.emailTB.Text.ToString(), Username, Password);
+            String query = String.Format("EXECUTE register_client @fio='{0}', @adress='{1}', @tel='{2}', @email='{3}', @username='{4}', @password='{5}'",this.fioTB.Text.ToString(), this.adressTB.Text.ToString(), this.telTB.Text.ToString(), email, Username, Password);
             try
             {
                 SQL.ExecuteQuery(query, this.m_Connection);
